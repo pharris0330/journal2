@@ -1,14 +1,13 @@
-from sqlalchemy import create_engine
 import streamlit as st
+import pandas as pd
+from sqlalchemy import create_engine
 
-# Load secrets
-DB_PARAMS = st.secrets
+# Load database URL from Streamlit secrets
+DB_URL = st.secrets["postgres_url"]
 
-# Correct SQLAlchemy connection URL format
-DATABASE_URL = f"postgresql+psycopg2://{DB_PARAMS['user']}:{DB_PARAMS['password']}@{DB_PARAMS['host']}:{DB_PARAMS['port']}/{DB_PARAMS['dbname']}"
-
+# Create database engine
 def get_engine():
-    return create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
+    return create_engine(DB_URL)
 
 def create_table():
     engine = get_engine()
@@ -20,7 +19,6 @@ def create_table():
                         created_at TIMESTAMP DEFAULT NOW()
                       )''')
 
-
 def insert_entry(entry, minutes):
     engine = get_engine()
     with engine.connect() as conn:
@@ -31,6 +29,7 @@ def get_entries():
     with engine.connect() as conn:
         df = pd.read_sql("SELECT * FROM journal ORDER BY created_at DESC", conn)
     return df
+
 
 # UI Elements
 st.title("📝 Journal Tracker")
