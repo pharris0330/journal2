@@ -1,16 +1,14 @@
-import streamlit as st
-#import psycopg2
-import pandas as pd
-from datetime import datetime
 from sqlalchemy import create_engine
+import streamlit as st
 
-# Load database credentials from Streamlit secrets
+# Load secrets
 DB_PARAMS = st.secrets
 
-# Create a connection engine
-def get_engine():
-    return create_engine(f"postgresql://{DB_PARAMS['user']}:{DB_PARAMS['password']}@{DB_PARAMS['host']}:{DB_PARAMS['port']}/{DB_PARAMS['dbname']}")
+# Correct SQLAlchemy connection URL format
+DATABASE_URL = f"postgresql+psycopg2://{DB_PARAMS['user']}:{DB_PARAMS['password']}@{DB_PARAMS['host']}:{DB_PARAMS['port']}/{DB_PARAMS['dbname']}"
 
+def get_engine():
+    return create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
 
 def create_table():
     engine = get_engine()
@@ -21,6 +19,7 @@ def create_table():
                         minutes INT,
                         created_at TIMESTAMP DEFAULT NOW()
                       )''')
+
 
 def insert_entry(entry, minutes):
     engine = get_engine()
